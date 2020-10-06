@@ -12,7 +12,7 @@ import java.util.*;
 public class Config {
     // -----------------------------------
     // configure these as desired
-    private static final int NUM_CARDS = 4;
+    private static final int NUM_CARDS = 8;
     private static final int MAX_CARD = NUM_CARDS;
     private static final int NUM_GAMES = 1;
     private static final boolean IS_VERBOSE = true;

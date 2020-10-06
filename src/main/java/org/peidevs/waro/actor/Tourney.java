@@ -8,6 +8,8 @@ import org.peidevs.waro.config.ConfigInfo;
 public class Tourney extends AbstractBehavior<Tourney.Command> {
     private static ConfigInfo configInfo;
 
+    private IdGenerator idGenerator = new IdGenerator(100L);
+
     private static final String TRACER = "TRACER Tourney ";
 
     public static Behavior<Tourney.Command> create(ConfigInfo configInfo) {
@@ -52,19 +54,17 @@ public class Tourney extends AbstractBehavior<Tourney.Command> {
     }
 
     private Behavior<Tourney.Command> onBeginTourneyCommand(BeginTourneyCommand command) {
-        var gameRequestId = 1L;
 
         ActorRef<Tourney.Command> self = getContext().getSelf();
 
         for (int gameIndex = 1; gameIndex <= command.numGames; gameIndex++) {
+            var gameRequestId = idGenerator.nextId();
             ActorRef<Dealer.Command> dealer = getContext().spawn(Dealer.create(Tourney.configInfo), "dealer_" + gameIndex);
             var playGameCommand = new Dealer.PlayGameCommand(gameRequestId, self);
             dealer.tell(playGameCommand);
 
-            gameRequestId++;
-
-            getContext().getLog().info(TRACER + "sleeping... req: " + gameRequestId);
-            try { Thread.sleep(3000); } catch (Exception ex) {}
+            // getContext().getLog().info(TRACER + "sleeping... req: " + gameRequestId);
+            // try { Thread.sleep(3000); } catch (Exception ex) {}
         }
 
         // example of response

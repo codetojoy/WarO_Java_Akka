@@ -13,7 +13,7 @@ import org.peidevs.waro.table.Hand;
 public class Dealer extends AbstractBehavior<Dealer.Command> {
     private static ConfigInfo configInfo;
 
-    private IdGenerator idGenerator = new IdGenerator();
+    private IdGenerator idGenerator = new IdGenerator(200L);
 
     private Map<String, ActorRef<PlayerActor.Command>> playerActorMap = new HashMap<>();
     private RequestTracker newHandRequestTracker = new RequestTracker();
@@ -99,13 +99,11 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
 
         int numPlayers = configInfo.numPlayers();
         int numCards = configInfo.numCards();
-        // getContext().getLog().info(TRACER + "cp1 {} {} ", numPlayers, numCards);
         var players = configInfo.players();
 
         // create Players
         for (var player : players) {
             var playerName = player.getName();
-            // getContext().getLog().info(TRACER + "cp2 {} ", playerName);
             ActorRef<PlayerActor.Command> playerActor = getContext().spawn(PlayerActor.create(configInfo), playerName);
             playerActorMap.put(playerName, playerActor);
         }
@@ -132,9 +130,6 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
             newHandRequestTracker.put(requestId, playerName);
         }
 
-        // getContext().getLog().info(TRACER + "sleeping... req: " + command.gameRequestId);
-        // try { Thread.sleep(2000); } catch (Exception ex) {}
-
         // example of response
         command.replyTo.tell(new Tourney.PlayGameAckEvent(command.gameRequestId));
 
@@ -154,7 +149,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         if (newHandRequestTracker.isAllReceived()) {
             logState("new hand complete {k:" + kitty.size() + " req:" + requestId + "}");
 
-            // playRound();
+            playRound();
         }
 
         return this;
@@ -167,7 +162,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         if (roundOverRequestTracker.isAllReceived()) {
             logState("ROUND OVER");
 
-            // playRound();
+            playRound();
         }
 
         return this;
@@ -183,7 +178,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
 
         if (bidRequestTracker.isAllReceived()) {
             logState("bids complete");
-            // determineRoundWinner();
+            determineRoundWinner();
         }
 
         return this;
@@ -204,7 +199,9 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
             var requestId = idGenerator.nextId();
             roundOverRequestTracker.put(requestId, playerName);
 
-            getContext().getLog().info(TRACER + "CP ALPHA" + " {} {} {} {} {}", requestId, playerName, offer, prizeCard, kitty.toString());
+            if (isWinner) {
+                getContext().getLog().info(TRACER + "{} WINS ROUND bid: {}  prize: {} kitty: {}", playerName, offer, prizeCard, kitty.toString());
+            }
 
             var self = getContext().getSelf();
             var roundOverCommand = new PlayerActor.RoundOverCommand(requestId, prizeCard, offer, isWinner, self);
