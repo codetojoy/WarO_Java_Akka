@@ -1,9 +1,9 @@
 
-package org.peidevs.waro.actor;
+package org.peidevs.waro.actor.util;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-class IdGenerator {
+public class IdGenerator {
     private AtomicLong id = null;
 
     public IdGenerator(long seed) {

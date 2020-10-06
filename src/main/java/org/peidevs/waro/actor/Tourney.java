@@ -3,6 +3,7 @@ package org.peidevs.waro.actor;
 import akka.actor.typed.*;
 import akka.actor.typed.javadsl.*;
 
+import org.peidevs.waro.actor.util.IdGenerator;
 import org.peidevs.waro.config.ConfigInfo;
 
 public class Tourney extends AbstractBehavior<Tourney.Command> {
