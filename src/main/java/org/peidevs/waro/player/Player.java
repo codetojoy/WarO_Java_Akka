@@ -51,7 +51,13 @@ public class Player {
     public String getName() { return name; }
 
     public Player winsGame() {
-        var newPlayerStats = playerStats.winsGame();
+        var newPlayerStats = playerStats.winsGame().reset();
+        var newPlayer = new Player(name, strategy, maxCard, hand, newPlayerStats);
+        return newPlayer;
+    }
+
+    public Player losesGame() {
+        var newPlayerStats = playerStats.reset();
         var newPlayer = new Player(name, strategy, maxCard, hand, newPlayerStats);
         return newPlayer;
     }

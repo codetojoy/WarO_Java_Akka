@@ -34,7 +34,8 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
     }
 
     public sealed interface Command
-        permits LogStateCommand, NewHandCommand, MakeBidCommand, RoundOverCommand {}
+        permits LogStateCommand, NewHandCommand, MakeBidCommand,
+                RoundOverCommand, GetTotalCommand, GameOverCommand {}
 
     public static final class LogStateCommand implements Command {
         final String prefix;
@@ -74,6 +75,16 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
         }
     }
 
+    public static final class GetTotalCommand implements Command {
+        final long totalRequestId;
+        final ActorRef<Dealer.Command> replyTo;
+
+        public GetTotalCommand(long totalRequestId, ActorRef<Dealer.Command> replyTo) {
+            this.totalRequestId = totalRequestId;
+            this.replyTo = replyTo;
+        }
+    }
+
     public static final class RoundOverCommand implements Command {
         final long roundOverRequestId;
         final int prizeCard;
@@ -91,6 +102,19 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
         }
     }
 
+    public static final class GameOverCommand implements Command {
+        final long gameOverRequestId;
+        final boolean isWinner;
+        final ActorRef<Dealer.Command> replyTo;
+
+        public GameOverCommand(long gameOverRequestId, boolean isWinner,
+                               ActorRef<Dealer.Command> replyTo) {
+            this.gameOverRequestId = gameOverRequestId;
+            this.isWinner = isWinner;
+            this.replyTo = replyTo;
+        }
+    }
+
     @Override
     public Receive<PlayerActor.Command> createReceive() {
         return newReceiveBuilder()
@@ -98,13 +122,15 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
                    .onMessage(NewHandCommand.class, this::onNewHandCommand)
                    .onMessage(MakeBidCommand.class, this::onMakeBidCommand)
                    .onMessage(RoundOverCommand.class, this::onRoundOverCommand)
+                   .onMessage(GetTotalCommand.class, this::onGetTotalCommand)
+                   .onMessage(GameOverCommand.class, this::onGameOverCommand)
                    .onSignal(PostStop.class, signal -> onPostStop())
                    .build();
     }
 
     private Behavior<PlayerActor.Command> onLogStateCommand(LogStateCommand command) {
         var prefix = command.prefix;
-        getContext().getLog().info(TRACER + prefix + " LOGSTATE {}", player.toString());
+        getContext().getLog().info(TRACER + prefix + " LS {}", player.toString());
         return this;
     }
 
@@ -133,6 +159,16 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
         return this;
     }
 
+    private Behavior<PlayerActor.Command> onGetTotalCommand(GetTotalCommand command) {
+        var playerName = player.getName();
+        var total = player.getTotal();
+
+        // example of response
+        command.replyTo.tell(new Dealer.GetTotalEvent(command.totalRequestId, total, playerName));
+
+        return this;
+    }
+
     private Behavior<PlayerActor.Command> onRoundOverCommand(RoundOverCommand command) {
         var isWinner = command.isWinner;
         var bid = new Bid(command.prizeCard, command.offer, player);
@@ -145,6 +181,21 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
 
         // example of response
         command.replyTo.tell(new Dealer.RoundOverAckEvent(command.roundOverRequestId));
+
+        return this;
+    }
+
+    private Behavior<PlayerActor.Command> onGameOverCommand(GameOverCommand command) {
+        var isWinner = command.isWinner;
+
+        if (isWinner) {
+            player = player.winsGame();
+        } else {
+            player = player.losesGame();
+        }
+
+        // example of response
+        command.replyTo.tell(new Dealer.GameOverAckEvent(command.gameOverRequestId));
 
         return this;
     }

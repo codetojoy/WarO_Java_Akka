@@ -21,7 +21,11 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
     private RequestTracker bidRequestTracker = new RequestTracker();
     private Set<BidInfo> bids = new HashSet<>();
 
+    private RequestTracker totalRequestTracker = new RequestTracker();
+    private Set<TotalInfo> totals = new HashSet<>();
+
     private RequestTracker roundOverRequestTracker = new RequestTracker();
+    private RequestTracker gameOverRequestTracker = new RequestTracker();
 
     private Hand kitty = null;
     private int prizeCard = 0;
@@ -38,7 +42,8 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
     }
 
     public sealed interface Command
-        permits PlayGameCommand, NewHandAckEvent, BidEvent, RoundOverAckEvent {}
+        permits PlayGameCommand, NewHandAckEvent, BidEvent,
+                RoundOverAckEvent, GetTotalEvent, GameOverAckEvent {}
 
     public static final class PlayGameCommand implements Command {
         final long gameRequestId;
@@ -50,7 +55,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         }
     }
 
-    public static abstract class AckEvent {
+    static abstract class AckEvent {
         final long requestId;
 
         AckEvent(long requestId) {
@@ -76,8 +81,26 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         }
     }
 
+    public static final class GetTotalEvent implements Command {
+        final long totalRequestId;
+        final int total;
+        final String playerName;
+
+        public GetTotalEvent(long totalRequestId, int total, String playerName) {
+            this.totalRequestId = totalRequestId;
+            this.total = total;
+            this.playerName = playerName;
+        }
+    }
+
     public static final class RoundOverAckEvent extends AckEvent implements Command {
         public RoundOverAckEvent(long requestId) {
+            super(requestId);
+        }
+    }
+
+    public static final class GameOverAckEvent extends AckEvent implements Command {
+        public GameOverAckEvent(long requestId) {
             super(requestId);
         }
     }
@@ -89,6 +112,8 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
                    .onMessage(NewHandAckEvent.class, this::onNewHandAckEvent)
                    .onMessage(BidEvent.class, this::onBidEvent)
                    .onMessage(RoundOverAckEvent.class, this::onRoundOverAckEvent)
+                   .onMessage(GetTotalEvent.class, this::onGetTotalEvent)
+                   .onMessage(GameOverAckEvent.class, this::onGameOverAckEvent)
                    .onSignal(PostStop.class, signal -> onPostStop())
                    .build();
     }
@@ -162,7 +187,24 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         if (roundOverRequestTracker.isAllReceived()) {
             logState("ROUND OVER");
 
-            playRound();
+            if (kitty.isEmpty()) {
+                getTotals();
+            } else {
+                playRound();
+            }
+        }
+
+        return this;
+    }
+
+    private Behavior<Dealer.Command> onGameOverAckEvent(GameOverAckEvent event) {
+        long requestId = event.requestId;
+        gameOverRequestTracker.ackReceived(requestId);
+
+        if (gameOverRequestTracker.isAllReceived()) {
+            logState("GAME OVER");
+
+            // TODO: tell tourney?
         }
 
         return this;
@@ -177,14 +219,51 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         bids.add(bidInfo);
 
         if (bidRequestTracker.isAllReceived()) {
-            logState("bids complete");
+            getContext().getLog().info(TRACER + "bids complete");
             determineRoundWinner();
         }
 
         return this;
     }
 
+    private Behavior<Dealer.Command> onGetTotalEvent(GetTotalEvent event) {
+        long totalRequestId = event.totalRequestId;
+        totalRequestTracker.ackReceived(totalRequestId);
+        var playerName = event.playerName;
+        var total = event.total;
+        var totalInfo = new TotalInfo(total, playerName);
+        totals.add(totalInfo);
+
+        if (totalRequestTracker.isAllReceived()) {
+            getContext().getLog().info(TRACER + "totals complete");
+            determineGameWinner();
+        }
+
+        return this;
+    }
+
     // ---------- end message handlers
+
+    private void determineGameWinner() {
+        getContext().getLog().info(TRACER + "determine game winner TODO here");
+        var highestTotal = totals.stream().max( comparing(TotalInfo::total) ).get();
+        var gameWinner = highestTotal.playerName();
+
+        for (var playerName : playerActorMap.keySet()) {
+            var playerActor = playerActorMap.get(playerName);
+            var isGameWinner = gameWinner.equals(playerName);
+            var requestId = idGenerator.nextId();
+            gameOverRequestTracker.put(requestId, playerName);
+
+            if (isGameWinner) {
+                getContext().getLog().info(TRACER + "{} WINS GAME", playerName);
+            }
+
+            var self = getContext().getSelf();
+            var gameOverCommand = new PlayerActor.GameOverCommand(requestId, isGameWinner, self);
+            playerActor.tell(gameOverCommand);
+        }
+    }
 
     private void determineRoundWinner() {
         getContext().getLog().info(TRACER + "determine round winner");
@@ -235,6 +314,20 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         }
     }
 
+    private void getTotals() {
+        totalRequestTracker.clear();
+        totals.clear();
+
+        for (var playerName : playerActorMap.keySet()) {
+            var playerActor = playerActorMap.get(playerName);
+            long totalRequestId = idGenerator.nextId();
+            totalRequestTracker.put(totalRequestId, playerName);
+            var self = getContext().getSelf();
+            var getTotalCommand = new PlayerActor.GetTotalCommand(totalRequestId, self);
+            playerActor.tell(getTotalCommand);
+        }
+    }
+
     private void logState(String prefix) {
          getContext().getLog().info(TRACER + prefix + " prizeCard {} kitty {}", prizeCard, kitty.toString());
          tellPlayersToLogState(prefix);
@@ -254,3 +347,5 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
 }
 
 record BidInfo (int offer, String playerName) {}
+
+record TotalInfo (int total, String playerName) {}
