@@ -11,7 +11,7 @@ import org.peidevs.waro.table.Hand;
 // Thoughts:
 // - don't allow legacy Player object leak out of this (e.g. in a message)
 // - don't reference ConfigInfo.players() in here
-// - pass Hand, Strategy, state as necessary in messages?
+// - don't log from here except on receipt of a LogState message
 
 public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
     private static int numCards;
@@ -104,7 +104,7 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
 
     private Behavior<PlayerActor.Command> onLogStateCommand(LogStateCommand command) {
         var prefix = command.prefix;
-        getContext().getLog().info(TRACER + prefix + " STATE {}", player.toString());
+        getContext().getLog().info(TRACER + prefix + " LOGSTATE {}", player.toString());
         return this;
     }
 
@@ -114,7 +114,7 @@ public class PlayerActor extends AbstractBehavior<PlayerActor.Command> {
         var strategy = command.strategy;
         player = new Player(playerName, strategy, maxCard, hand);
 
-        getContext().getLog().info(TRACER + "playerActor STATE {}", player.toString());
+        // getContext().getLog().info(TRACER + "playerActor STATE {}", player.toString());
 
         // example of response
         command.replyTo.tell(new Dealer.NewHandAckEvent(command.handRequestId));

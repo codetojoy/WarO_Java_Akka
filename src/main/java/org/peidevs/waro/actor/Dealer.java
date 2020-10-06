@@ -99,13 +99,13 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
 
         int numPlayers = configInfo.numPlayers();
         int numCards = configInfo.numCards();
-        getContext().getLog().info(TRACER + "cp1 {} {} ", numPlayers, numCards);
+        // getContext().getLog().info(TRACER + "cp1 {} {} ", numPlayers, numCards);
         var players = configInfo.players();
 
         // create Players
         for (var player : players) {
             var playerName = player.getName();
-            getContext().getLog().info(TRACER + "cp2 {} ", playerName);
+            // getContext().getLog().info(TRACER + "cp2 {} ", playerName);
             ActorRef<PlayerActor.Command> playerActor = getContext().spawn(PlayerActor.create(configInfo), playerName);
             playerActorMap.put(playerName, playerActor);
         }
@@ -119,9 +119,8 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
 
         // deal hands
 
-        long requestId = idGenerator.nextId();
-
         for (var player : playersWithHand) {
+            long requestId = idGenerator.nextId();
             var playerName = player.getName();
             var strategy = player.getStrategy();
             var hand = player.getHand();
@@ -133,8 +132,8 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
             newHandRequestTracker.put(requestId, playerName);
         }
 
-        getContext().getLog().info(TRACER + "sleeping... req: " + command.gameRequestId);
-        try { Thread.sleep(2000); } catch (Exception ex) {}
+        // getContext().getLog().info(TRACER + "sleeping... req: " + command.gameRequestId);
+        // try { Thread.sleep(2000); } catch (Exception ex) {}
 
         // example of response
         command.replyTo.tell(new Tourney.PlayGameAckEvent(command.gameRequestId));
@@ -153,9 +152,9 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         newHandRequestTracker.ackReceived(requestId);
 
         if (newHandRequestTracker.isAllReceived()) {
-            logState("new hand complete [" + getRoundIndex() +  "]");
+            logState("new hand complete {k:" + kitty.size() + " req:" + requestId + "}");
 
-            playRound();
+            // playRound();
         }
 
         return this;
