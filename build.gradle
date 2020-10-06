@@ -2,7 +2,10 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+// console app
 // mainClassName = 'org.peidevs.waro.Main'
+
+// Akka framework
 mainClassName = 'org.peidevs.waro.actor.Runner'
 
 repositories {
@@ -10,18 +13,22 @@ repositories {
 }
 
 dependencies {
+    // console app
     implementation 'com.codepoetics:protonpack:1.16'
     implementation 'com.google.guava:guava:24.1-jre'
     implementation 'org.apache.commons:commons-lang3:3.10'
     implementation 'org.springframework:spring-context:5.2.5.RELEASE'
 
+    // Akka
     implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.6.9'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
     implementation 'commons-io:commons-io:2.8.0'
     implementation 'org.apache.commons:commons-lang3:3.11'
 
-    testImplementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.6.9'
     testImplementation 'junit:junit:4.12'
+
+    // Akka  
+    testImplementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.6.9'
     testImplementation 'org.scalatestplus:junit-4-12_0.27:3.2.2.0'
 }
 
