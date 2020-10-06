@@ -56,7 +56,7 @@ public class Game implements UnaryOperator<List<Player>> {
 
     protected List<Player> determineWinner(List<Player> players) {
         var winner = players.stream()
-                               .max( comparing(Player::getTotal).reversed() )
+                               .max( comparing(Player::getTotal) )
                                .get()
                                .winsGame();
 
