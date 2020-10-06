@@ -9,6 +9,7 @@ import org.peidevs.waro.player.*;
 import org.peidevs.waro.table.*;
 import org.peidevs.waro.util.*;
 
+@Deprecated
 public class Tourney implements UnaryOperator<List<Player>> {
     private final Log logger;
     private final boolean isVerbose;

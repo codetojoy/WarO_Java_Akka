@@ -10,12 +10,13 @@ import org.peidevs.waro.player.*;
 import org.peidevs.waro.table.*;
 import org.peidevs.waro.util.*;
 
-public class Game implements UnaryOperator<List<Player>> {
+@Deprecated
+class Game implements UnaryOperator<List<Player>> {
     private final Log logger;
     private final int numPlayers;
     private final int numCards;
 
-    public Game(int numPlayers, int numCards, boolean isVerbose) {
+    protected Game(int numPlayers, int numCards, boolean isVerbose) {
         this.numPlayers = numPlayers;
         this.numCards = numCards;
         this.logger = new Log(isVerbose);
@@ -67,5 +68,4 @@ public class Game implements UnaryOperator<List<Player>> {
         newPlayers.add(winner);
         return newPlayers;
     }
-
 }
