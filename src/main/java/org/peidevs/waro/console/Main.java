@@ -1,6 +1,6 @@
 package org.peidevs.waro.console;
 
-import org.peidevs.waro.function.Tourney;
+import org.peidevs.waro.console.function.Tourney;
 import org.peidevs.waro.player.Player;
 import org.peidevs.waro.player.PlayerStats;
 import org.peidevs.waro.config.ConfigService;

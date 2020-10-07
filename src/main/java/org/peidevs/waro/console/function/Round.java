@@ -1,4 +1,4 @@
-package org.peidevs.waro.function;
+package org.peidevs.waro.console.function;
 
 import org.peidevs.waro.player.*;
 import org.peidevs.waro.table.*;

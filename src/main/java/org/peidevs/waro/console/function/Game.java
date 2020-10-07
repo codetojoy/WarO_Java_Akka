@@ -1,4 +1,4 @@
-package org.peidevs.waro.function;
+package org.peidevs.waro.console.function;
 
 import java.util.*;
 import java.util.stream.*;
