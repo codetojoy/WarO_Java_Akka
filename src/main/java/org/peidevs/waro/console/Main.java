@@ -1,4 +1,4 @@
-package org.peidevs.waro;
+package org.peidevs.waro.console;
 
 import org.peidevs.waro.function.Tourney;
 import org.peidevs.waro.player.Player;
