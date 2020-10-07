@@ -14,6 +14,39 @@ public class AuditorTest {
     private static final Hand EMPTY_KITTY = new Hand(List.of());
 
     @Test(expected = IllegalStateException.class)
+    public void testConfirmGameBids_fail() {
+        var kitty = new Hand(List.of(2,3,5));
+        auditor = new Auditor(kitty, NUM_CARDS);
+        var exclusion = List.of(2,3,5,10);
+
+        for (int i = 1; i <= NUM_CARDS; i++) {
+            if (! exclusion.contains(i)) {
+                auditor.setGameObservedBid(i);
+            }
+        }
+
+        // test
+        var tmp = auditor.confirmGameBids();
+    }
+
+    public void testConfirmGameBids_basic() {
+        var kitty = new Hand(List.of(2,3,5));
+        auditor = new Auditor(kitty, NUM_CARDS);
+        var exclusion = List.of(2,3,5);
+
+        for (int i = 1; i <= NUM_CARDS; i++) {
+            if (! exclusion.contains(i)) {
+                auditor.setGameObservedBid(i);
+            }
+        }
+
+        // test
+        var result = auditor.confirmGameBids();
+
+        // success == no exception
+    }
+
+    @Test(expected = IllegalStateException.class)
     public void testConfirmBidsForPlayers_Fail() {
         var kitty = new Hand(List.of(2,3,5));
         auditor = new Auditor(kitty, NUM_CARDS);
@@ -24,7 +57,7 @@ public class AuditorTest {
         // auditor.setObservedBidForPlayer(PLAYER_NAME, 9);
 
         // test
-        var result = auditor.confirmBidsForPlayers();
+        var tmp = auditor.confirmBidsForPlayers();
     }
 
     @Test
@@ -39,6 +72,30 @@ public class AuditorTest {
 
         // test
         var result = auditor.confirmBidsForPlayers();
+
+        // success == no exception
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testConfirmKitty_fail() {
+        var kitty = new Hand(List.of(2,3,5));
+        auditor = new Auditor(kitty, NUM_CARDS);
+        auditor.setObservedTotal(5);
+        // auditor.setObservedTotal(5);
+
+        // test
+        var tmp = auditor.confirmKitty();
+    }
+
+    @Test
+    public void testConfirmKitty_basic() {
+        var kitty = new Hand(List.of(2,3,5));
+        auditor = new Auditor(kitty, NUM_CARDS);
+        auditor.setObservedTotal(5);
+        auditor.setObservedTotal(5);
+
+        // test
+        var result = auditor.confirmKitty();
 
         // success == no exception
     }
