@@ -31,6 +31,8 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
     private Hand kitty = null;
     private int prizeCard = 0;
 
+    private Auditor auditor = null;
+
     private static final String TRACER = "TRACER dealer ";
 
     public static Behavior<Dealer.Command> create(ConfigInfo configInfo) {
@@ -139,6 +141,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         var legacyDealer = new org.peidevs.waro.table.Dealer();
         var table = legacyDealer.deal(numPlayers, numCards, playersStream);
         kitty = table.kitty();
+        auditor = new Auditor(kitty, numCards);
         var playersWithHand = table.players();
 
         // deal hands
@@ -154,6 +157,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
                                                                 strategy, hand, self);
             playerActor.tell(newHandCommand);
             newHandRequestTracker.put(requestId, playerName);
+            auditor.setExpectedBidsForPlayer(playerName, hand);
         }
 
         // example of response
@@ -218,6 +222,7 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         var offer = event.offer;
         var bidInfo = new BidInfo(offer, playerName);
         bids.add(bidInfo);
+        auditor.setObservedBidForPlayer(playerName, offer);
 
         if (bidRequestTracker.isAllReceived()) {
             getContext().getLog().info(TRACER + "bids complete");
@@ -235,8 +240,13 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         var totalInfo = new TotalInfo(total, playerName);
         totals.add(totalInfo);
 
+        auditor.setObservedTotal(total);
+
         if (totalRequestTracker.isAllReceived()) {
             getContext().getLog().info(TRACER + "totals complete");
+            getContext().getLog().info(auditor.confirmKitty());
+            getContext().getLog().info(auditor.confirmGameBids());
+            getContext().getLog().info(auditor.confirmBidsForPlayers());
             determineGameWinner();
         }
 

@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
 
-    // Akka  
+    // Akka
     testImplementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.6.9'
     testImplementation 'org.scalatestplus:junit-4-12_0.27:3.2.2.0'
 }
