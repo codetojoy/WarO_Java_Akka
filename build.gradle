@@ -3,10 +3,10 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 // console app
-mainClassName = 'org.peidevs.waro.console.Main'
+// mainClassName = 'org.peidevs.waro.console.Main'
 
 // Akka framework
-// mainClassName = 'org.peidevs.waro.actor.Runner'
+mainClassName = 'org.peidevs.waro.actor.Runner'
 
 repositories {
     jcenter()

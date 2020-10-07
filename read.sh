@@ -1,6 +1,6 @@
-#!/bin/bash 
+#!/bin/bash
 
-set -e 
+set -e
 
 LOG_FILE=out.log
 
@@ -14,3 +14,6 @@ echo "elapsed:"
 grep -i elapsed $LOG_FILE
 echo ""
 
+echo "audit:"
+grep -i auditor $LOG_FILE
+echo ""
