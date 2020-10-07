@@ -166,12 +166,6 @@ public class Dealer extends AbstractBehavior<Dealer.Command> {
         return this;
     }
 
-    private int getRoundIndex() {
-        int numCardsPerPlayer = configInfo.numCards() / (configInfo.numPlayers() + 1);
-        int roundIndex = (numCardsPerPlayer - kitty.size()) + 1;
-        return roundIndex;
-    }
-
     private Behavior<Dealer.Command> onNewHandAckEvent(NewHandAckEvent event) {
         long requestId = event.requestId;
         newHandRequestTracker.ackReceived(requestId);

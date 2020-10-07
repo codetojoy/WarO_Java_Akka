@@ -55,7 +55,6 @@ public class Tourney extends AbstractBehavior<Tourney.Command> {
     }
 
     private Behavior<Tourney.Command> onBeginTourneyCommand(BeginTourneyCommand command) {
-
         ActorRef<Tourney.Command> self = getContext().getSelf();
 
         for (int gameIndex = 1; gameIndex <= command.numGames; gameIndex++) {
@@ -63,9 +62,6 @@ public class Tourney extends AbstractBehavior<Tourney.Command> {
             ActorRef<Dealer.Command> dealer = getContext().spawn(Dealer.create(Tourney.configInfo), "dealer_" + gameIndex);
             var playGameCommand = new Dealer.PlayGameCommand(gameRequestId, self);
             dealer.tell(playGameCommand);
-
-            // getContext().getLog().info(TRACER + "sleeping... req: " + gameRequestId);
-            // try { Thread.sleep(3000); } catch (Exception ex) {}
         }
 
         // example of response
