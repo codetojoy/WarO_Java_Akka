@@ -9,7 +9,7 @@ apply plugin: 'application'
 mainClassName = 'org.peidevs.waro.actor.Runner'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
